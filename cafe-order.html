@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>橙意咖啡厅 / Orange Café</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#fff8f2;color:#3a1f00;min-height:100vh;}
+.top-nav{display:flex;background:#3a1f00;position:sticky;top:0;z-index:200;align-items:stretch;}
+.nav-tab{flex:1;padding:13px 6px;text-align:center;color:#c8a070;font-size:0.8rem;font-weight:700;cursor:pointer;transition:all 0.2s;border-bottom:3px solid transparent;letter-spacing:0.4px;}
+.nav-tab:hover{color:#f5a623;}
+.nav-tab.active{color:#f5a623;border-bottom-color:#f5a623;background:rgba(245,166,35,0.08);}
+.lang-btn{background:#f5a623;color:#3a1f00;border:none;cursor:pointer;padding:0 14px;font-weight:800;font-size:0.82rem;letter-spacing:1px;transition:background 0.2s;flex-shrink:0;}
+.lang-btn:hover{background:#e8650a;color:white;}
+.page{display:none;min-height:calc(100vh - 46px);}
+.page.active{display:block;}
+
+.order-header{background:linear-gradient(135deg,#e8650a,#f5a623);color:white;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;}
+.order-header h1{font-size:1.4rem;letter-spacing:1px;line-height:1.3;}
+.header-sub{font-size:0.75rem;opacity:0.85;margin-top:2px;}
+.table-info-bar{background:#fff3e0;padding:10px 24px;display:flex;align-items:center;gap:16px;border-bottom:2px solid #f5a623;flex-wrap:wrap;}
+.table-field{display:flex;align-items:center;gap:8px;font-size:0.85rem;}
+.table-field label{color:#8a5a30;font-weight:600;white-space:nowrap;}
+.table-input{border:1.5px solid #f5a623;border-radius:8px;padding:5px 10px;font-size:0.85rem;width:80px;outline:none;background:white;}
+.table-input:focus{border-color:#e8650a;}
+.guests-input{width:60px;}
+.tabs{display:flex;gap:8px;padding:14px 24px 0;overflow-x:auto;}
+.tab{background:white;border:2px solid #f5a623;color:#e8650a;border-radius:50px;padding:7px 18px;cursor:pointer;white-space:nowrap;font-size:0.85rem;font-weight:600;transition:all 0.2s;}
+.tab:hover{background:#fff0e0;}
+.tab.active{background:#e8650a;color:white;border-color:#e8650a;}
+.menu{padding:14px 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;}
+.card{background:white;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(232,101,10,0.1);transition:transform 0.2s,box-shadow 0.2s;display:flex;flex-direction:column;}
+.card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(232,101,10,0.2);}
+.card-img{height:130px;position:relative;overflow:hidden;}
+.card-img svg{width:100%;height:100%;position:absolute;top:0;left:0;}
+.card-body{padding:11px;flex:1;display:flex;flex-direction:column;}
+.card-name{font-size:0.95rem;font-weight:700;margin-bottom:1px;}
+.card-name-sub{font-size:0.72rem;color:#b07840;margin-bottom:4px;font-style:italic;}
+.card-desc{font-size:0.75rem;color:#8a5a30;flex:1;margin-bottom:8px;line-height:1.4;}
+.card-footer{display:flex;align-items:center;justify-content:space-between;}
+.card-price{font-size:1.05rem;font-weight:800;color:#e8650a;}
+.card-qty{display:flex;align-items:center;gap:5px;}
+.cqb{background:#e8650a;color:white;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;}
+.cqb:hover{background:#c4530a;transform:scale(1.1);}
+.cqb.minus{background:#f0c080;color:#7a4000;}
+.cqb.minus:hover{background:#e8a840;}
+.cqn{font-weight:800;font-size:0.9rem;min-width:20px;text-align:center;}
+.add-btn{background:#e8650a;color:white;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.add-btn:hover{background:#c4530a;transform:scale(1.1);}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.overlay.show{opacity:1;pointer-events:all;}
+.drawer{position:fixed;right:0;top:0;bottom:0;width:420px;max-width:100%;background:white;z-index:400;transform:translateX(100%);transition:transform 0.3s;display:flex;flex-direction:column;box-shadow:-4px 0 30px rgba(0,0,0,0.15);}
+.drawer.show{transform:translateX(0);}
+.drawer-header{background:linear-gradient(135deg,#e8650a,#f5a623);color:white;padding:15px 18px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.drawer-header h2{font-size:1.05rem;}
+.close-btn{background:none;border:none;color:white;font-size:1.3rem;cursor:pointer;}
+.d-page{display:none;flex:1;flex-direction:column;overflow:hidden;}
+.d-page.active{display:flex;}
+.d-scroll{flex:1;overflow-y:auto;padding:12px;}
+.empty-cart{text-align:center;color:#c0a080;padding:50px 20px;}
+.empty-cart svg{width:52px;height:52px;margin-bottom:10px;opacity:0.35;}
+.cart-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0e0d0;}
+.ct{width:44px;height:44px;border-radius:8px;overflow:hidden;flex-shrink:0;}
+.ct svg{width:100%;height:100%;}
+.ci-info{flex:1;}
+.ci-name{font-weight:600;font-size:0.88rem;}
+.ci-name-sub{font-size:0.7rem;color:#b07840;font-style:italic;}
+.ci-price{color:#e8650a;font-size:0.78rem;margin-top:1px;}
+.ci-note{font-size:0.72rem;color:#aaa;margin-top:1px;}
+.qc{display:flex;align-items:center;gap:6px;}
+.qb{background:#f5a623;color:white;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;}
+.qb:hover{background:#e8650a;}
+.qn{font-weight:700;min-width:16px;text-align:center;font-size:0.88rem;}
+.del-btn{background:none;border:none;color:#ccc;cursor:pointer;padding:3px;transition:color 0.2s;}
+.del-btn:hover{color:#e74c3c;}
+.d-footer{padding:12px;border-top:2px solid #f0e0d0;flex-shrink:0;}
+.fee-rows{margin-bottom:7px;}
+.fee-row{display:flex;justify-content:space-between;font-size:0.83rem;color:#8a5a30;margin-bottom:3px;}
+.fee-row.discount{color:#e53935;}
+.fee-row.gift{color:#4caf50;}
+.total-row{display:flex;justify-content:space-between;font-size:1rem;font-weight:800;padding-top:7px;border-top:1px dashed #f0d0b0;margin-bottom:10px;}
+.total-val{color:#e8650a;font-size:1.2rem;}
+.action-btns{display:flex;gap:8px;}
+.btn-primary{flex:2;background:linear-gradient(135deg,#e8650a,#f5a623);color:white;border:none;border-radius:50px;padding:12px;font-size:0.9rem;font-weight:700;cursor:pointer;transition:opacity 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-primary:hover{opacity:0.9;}
+.btn-primary:disabled{background:#ddd;color:#aaa;cursor:not-allowed;}
+.btn-sec{flex:1;background:white;color:#e8650a;border:2px solid #e8650a;border-radius:50px;padding:10px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.btn-sec:hover{background:#fff0e0;}
+.adj-section{margin-bottom:14px;}
+.adj-title{font-size:0.75rem;color:#8a5a30;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:7px;}
+.adj-row{display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
+.adj-btn{border:2px solid #f0d8c0;border-radius:10px;padding:7px 13px;cursor:pointer;font-size:0.82rem;font-weight:600;transition:all 0.2s;color:#8a5a30;background:white;}
+.adj-btn:hover{border-color:#e8650a;color:#e8650a;}
+.adj-btn.active{border-color:#e8650a;background:#fff5ee;color:#e8650a;}
+.adj-btn.green{border-color:#4caf50;color:#4caf50;}
+.adj-btn.green.active{background:#e8f5e9;}
+.adj-btn.red{border-color:#e53935;color:#e53935;}
+.adj-input{flex:1;min-width:80px;border:2px solid #f0d8c0;border-radius:10px;padding:7px 11px;font-size:0.85rem;outline:none;}
+.adj-input:focus{border-color:#f5a623;}
+.disc-preview{font-size:0.8rem;color:#e53935;font-weight:600;margin-top:4px;}
+.pay-methods{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.pm{border:2px solid #f0d8c0;border-radius:12px;padding:12px 13px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:11px;background:white;}
+.pm:hover{border-color:#f5a623;}
+.pm.selected{border-color:#e8650a;background:#fff5ee;}
+.pm-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pm-icon.cash{background:linear-gradient(135deg,#4caf50,#81c784);}
+.pm-icon.card{background:linear-gradient(135deg,#2196f3,#64b5f6);}
+.pm-icon.ew{background:linear-gradient(135deg,#9c27b0,#ce93d8);}
+.pm-info{flex:1;}
+.pm-name{font-weight:700;font-size:0.9rem;}
+.pm-sub{font-size:0.73rem;color:#8a5a30;margin-top:1px;}
+.pm-radio{width:17px;height:17px;border-radius:50%;border:2px solid #f0d8c0;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pm.selected .pm-radio{border-color:#e8650a;}
+.pm-dot{width:8px;height:8px;border-radius:50%;background:#e8650a;display:none;}
+.pm.selected .pm-dot{display:block;}
+.sub-panel{display:none;margin-top:7px;padding:11px;background:#fff8f2;border-radius:10px;}
+.sub-panel.show{display:block;}
+.cash-row{display:flex;gap:6px;align-items:center;margin-bottom:7px;}
+.cpfx{font-size:1rem;font-weight:700;color:#e8650a;}
+.cinput{flex:1;border:2px solid #f0d8c0;border-radius:8px;padding:7px 11px;font-size:0.9rem;outline:none;}
+.cinput:focus{border-color:#f5a623;}
+.qamts{display:flex;gap:5px;flex-wrap:wrap;}
+.qa{background:#fff0e0;border:1px solid #f5a623;color:#e8650a;border-radius:14px;padding:3px 11px;font-size:0.8rem;cursor:pointer;font-weight:600;}
+.qa:hover{background:#f5a623;color:white;}
+.change-box{margin-top:7px;background:#e8f5e9;border-radius:8px;padding:7px 11px;display:none;justify-content:space-between;font-weight:700;color:#2e7d32;font-size:0.88rem;}
+.change-box.show{display:flex;}
+.insuf{font-size:0.78rem;color:#e53935;margin-top:5px;display:none;}
+.insuf.show{display:block;}
+.ew-opts{display:flex;gap:7px;flex-wrap:wrap;}
+.ew-opt{border:2px solid #f0d8c0;border-radius:8px;padding:6px 13px;cursor:pointer;font-size:0.82rem;font-weight:600;transition:all 0.2s;}
+.ew-opt:hover{border-color:#9c27b0;}
+.ew-opt.selected{border-color:#9c27b0;background:#f5eeff;color:#9c27b0;}
+.tip-opts{display:flex;gap:6px;}
+.tip-opt{flex:1;border:2px solid #f0d8c0;border-radius:8px;padding:7px 4px;text-align:center;cursor:pointer;font-weight:700;font-size:0.85rem;transition:all 0.2s;color:#8a5a30;}
+.tip-opt:hover{border-color:#f5a623;}
+.tip-opt.selected{border-color:#e8650a;background:#fff5ee;color:#e8650a;}
+.cart-btn{background:white;color:#e8650a;border:none;border-radius:50px;padding:8px 15px;cursor:pointer;font-weight:bold;font-size:0.85rem;display:flex;align-items:center;gap:6px;transition:all 0.2s;}
+.cart-btn:hover{transform:scale(1.05);box-shadow:0 3px 10px rgba(0,0,0,0.15);}
+.ccnt{background:#e8650a;color:white;border-radius:50%;width:19px;height:19px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:bold;}
+.badge-bump{animation:bump 0.3s ease;}
+@keyframes bump{0%,100%{transform:scale(1)}50%{transform:scale(1.4)}}
+
+/* Staff */
+.staff-page{padding:18px 22px;}
+.staff-page h2{font-size:1.2rem;font-weight:800;margin-bottom:3px;}
+.staff-page p.sub{font-size:0.82rem;color:#8a5a30;margin-bottom:16px;}
+.order-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;}
+.order-card{background:white;border-radius:13px;box-shadow:0 2px 10px rgba(0,0,0,0.07);overflow:hidden;}
+.oc-header{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;}
+.oc-header.pending{background:#fff3e0;}
+.oc-header.serving{background:#e8f5e9;}
+.oc-header.done{background:#f5f5f5;}
+.oc-table{font-weight:800;font-size:0.95rem;}
+.oc-time{font-size:0.75rem;color:#888;}
+.status-badge{padding:3px 9px;border-radius:20px;font-size:0.72rem;font-weight:700;}
+.status-badge.pending{background:#ff9800;color:white;}
+.status-badge.serving{background:#4caf50;color:white;}
+.status-badge.done{background:#9e9e9e;color:white;}
+.oc-body{padding:11px 14px;}
+.oc-items{margin-bottom:9px;}
+.oc-item-row{display:flex;align-items:center;font-size:0.82rem;padding:4px 0;border-bottom:1px solid #f5f0e8;}
+.oc-item-row:last-child{border:none;}
+.oc-item-name{flex:1;}
+.oc-item-qty{color:#8a5a30;margin:0 7px;}
+.serve-item-btn{background:#e8f5e9;color:#4caf50;border:1px solid #4caf50;border-radius:6px;padding:2px 7px;font-size:0.72rem;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.serve-item-btn:hover{background:#4caf50;color:white;}
+.served-label{color:#4caf50;font-size:0.72rem;font-weight:700;}
+.oc-total{font-size:0.88rem;font-weight:700;color:#e8650a;text-align:right;margin-bottom:9px;}
+.oc-actions{display:flex;gap:7px;}
+.serve-btn{flex:1;background:linear-gradient(135deg,#4caf50,#81c784);color:white;border:none;border-radius:8px;padding:9px;font-size:0.82rem;font-weight:700;cursor:pointer;transition:opacity 0.2s;}
+.serve-btn:hover{opacity:0.85;}
+.serve-btn:disabled{background:#ddd;color:#aaa;cursor:not-allowed;}
+.cancel-btn{background:white;color:#e53935;border:2px solid #e53935;border-radius:8px;padding:8px 13px;font-size:0.8rem;font-weight:700;cursor:pointer;}
+.oc-meta{font-size:0.78rem;color:#8a5a30;margin-bottom:7px;display:flex;gap:12px;flex-wrap:wrap;}
+
+/* Receipt Modal */
+.modal{position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;padding:14px;}
+.modal.show{display:flex;}
+.modal-bg{position:absolute;inset:0;background:rgba(0,0,0,0.55);}
+.receipt{position:relative;background:white;border-radius:17px;width:100%;max-width:360px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.25);animation:pop 0.3s ease;}
+@keyframes pop{from{transform:scale(0.85);opacity:0}to{transform:scale(1);opacity:1}}
+.r-header{background:linear-gradient(135deg,#e8650a,#f5a623);color:white;padding:22px 20px 30px;text-align:center;border-radius:17px 17px 0 0;}
+.r-check{width:48px;height:48px;background:rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;}
+.r-header h3{font-size:1.3rem;margin-bottom:2px;}
+.r-header p{font-size:0.8rem;opacity:0.9;}
+.r-wave{overflow:hidden;line-height:0;background:#f8f8f8;margin-top:-1px;}
+.r-body{background:#f8f8f8;padding:4px 18px 18px;}
+.r-store{text-align:center;margin-bottom:10px;}
+.r-store-name{font-size:1rem;font-weight:800;}
+.r-store-sub{font-size:0.7rem;color:#aaa;margin-top:1px;}
+.r-div{border:none;border-top:1px dashed #ddd;margin:9px 0;}
+.r-meta{display:flex;justify-content:space-between;margin-bottom:9px;font-size:0.74rem;color:#888;}
+.r-meta-col{display:flex;flex-direction:column;gap:2px;}
+.r-lbl{font-size:0.66rem;color:#aaa;text-transform:uppercase;letter-spacing:0.4px;}
+.r-val{font-weight:600;color:#555;font-size:0.8rem;}
+.r-items-hdr{display:flex;justify-content:space-between;font-size:0.68rem;color:#aaa;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;}
+.r-item{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid #eee;font-size:0.84rem;}
+.r-item-l{flex:1;}
+.r-item-name{font-weight:600;color:#3a1f00;}
+.r-item-sub{font-size:0.7rem;color:#b07840;font-style:italic;}
+.r-item-unit{font-size:0.7rem;color:#aaa;margin-top:1px;}
+.r-item-qty{width:26px;text-align:center;color:#888;font-size:0.8rem;}
+.r-item-price{width:50px;text-align:right;font-weight:600;}
+.r-totals{background:white;border-radius:10px;padding:11px;margin:9px 0;}
+.rr{display:flex;justify-content:space-between;font-size:0.81rem;color:#8a5a30;margin-bottom:4px;}
+.rr:last-child{margin-bottom:0;}
+.rr.disc{color:#e53935;}
+.rr.gift{color:#4caf50;}
+.rr.total{font-size:0.98rem;font-weight:800;color:#e8650a;padding-top:8px;border-top:1px dashed #f0d0b0;margin-top:6px;}
+.r-paid-box{background:white;border-radius:10px;padding:11px;margin-bottom:9px;}
+.pay-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:14px;font-size:0.78rem;font-weight:700;margin-bottom:7px;}
+.r-change{background:#e8f5e9;border-radius:8px;padding:6px 11px;display:flex;justify-content:space-between;font-weight:700;color:#2e7d32;font-size:0.85rem;}
+.r-barcode{text-align:center;padding:7px 0 3px;}
+.r-thanks{text-align:center;font-size:0.73rem;color:#bbb;margin-bottom:14px;line-height:1.6;}
+.r-actions{display:flex;gap:8px;}
+.r-print-btn{flex:1;background:white;color:#e8650a;border:2px solid #e8650a;border-radius:50px;padding:10px;font-size:0.84rem;font-weight:700;cursor:pointer;}
+.r-close-btn{flex:1;background:linear-gradient(135deg,#e8650a,#f5a623);color:white;border:none;border-radius:50px;padding:10px;font-size:0.84rem;font-weight:700;cursor:pointer;}
+.r-table-info{background:#fff8f2;border-radius:8px;padding:7px 11px;margin-bottom:7px;font-size:0.8rem;display:flex;gap:12px;flex-wrap:wrap;color:#8a5a30;}
+.r-table-info span{font-weight:700;color:#3a1f00;}
+
+/* Owner Report */
+.report-page{padding:18px 22px;max-width:900px;margin:0 auto;}
+.report-page h2{font-size:1.2rem;font-weight:800;margin-bottom:3px;}
+.report-page p.sub{font-size:0.82rem;color:#8a5a30;margin-bottom:18px;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px;}
+.kpi{background:white;border-radius:13px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,0.07);border-left:4px solid #f5a623;}
+.kpi.orange{border-left-color:#e8650a;}
+.kpi.green{border-left-color:#4caf50;}
+.kpi.blue{border-left-color:#2196f3;}
+.kpi.purple{border-left-color:#9c27b0;}
+.kpi-label{font-size:0.72rem;color:#8a5a30;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:5px;}
+.kpi-val{font-size:1.4rem;font-weight:900;color:#3a1f00;}
+.kpi-sub{font-size:0.72rem;color:#aaa;margin-top:2px;}
+.section-title{font-size:0.95rem;font-weight:800;margin-bottom:10px;color:#3a1f00;display:flex;align-items:center;gap:7px;}
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+@media(max-width:600px){.report-grid{grid-template-columns:1fr;}}
+.report-box{background:white;border-radius:13px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,0.07);}
+.top-item-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #f5f0e8;}
+.top-item-row:last-child{border:none;}
+.rank-num{width:20px;height:20px;border-radius:50%;background:#f5a623;color:white;font-size:0.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rank-num.gold{background:#e8650a;}
+.ti-name{flex:1;font-size:0.85rem;font-weight:600;}
+.ti-bar-wrap{width:70px;background:#f0e8d8;border-radius:4px;height:7px;overflow:hidden;}
+.ti-bar{height:100%;background:linear-gradient(90deg,#e8650a,#f5a623);border-radius:4px;}
+.ti-val{width:40px;text-align:right;font-size:0.8rem;font-weight:700;color:#e8650a;}
+.order-hist-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f5f0e8;font-size:0.82rem;}
+.order-hist-row:last-child{border:none;}
+.oh-num{font-weight:700;color:#3a1f00;}
+.oh-table{color:#8a5a30;}
+.oh-total{font-weight:700;color:#e8650a;}
+.oh-method{padding:2px 7px;border-radius:10px;font-size:0.7rem;font-weight:700;}
+.oh-method.cash{background:#e8f5e9;color:#4caf50;}
+.oh-method.card{background:#e3f2fd;color:#2196f3;}
+.oh-method.ewallet{background:#f3e5f5;color:#9c27b0;}
+.oh-method.void{background:#fce4ec;color:#e91e63;}
+.adj-tags{display:flex;gap:3px;flex-wrap:wrap;}
+.adj-tag{padding:1px 5px;border-radius:7px;font-size:0.68rem;font-weight:700;}
+.adj-tag.disc{background:#fff3e0;color:#e8650a;}
+.adj-tag.gift{background:#e8f5e9;color:#4caf50;}
+.adj-tag.void{background:#fce4ec;color:#e91e63;}
+.clear-btn{background:#fce4ec;color:#e91e63;border:none;border-radius:8px;padding:6px 13px;font-size:0.8rem;font-weight:700;cursor:pointer;}
+.clear-btn:hover{background:#e91e63;color:white;}
+.summary-bar{background:linear-gradient(135deg,#e8650a,#f5a623);color:white;border-radius:12px;padding:13px 16px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+.sb-item{text-align:center;}
+.sb-label{font-size:0.7rem;opacity:0.85;text-transform:uppercase;letter-spacing:0.4px;}
+.sb-val{font-size:1.15rem;font-weight:900;margin-top:1px;}
+.pay-mix{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px;}
+.pm-chip{display:flex;align-items:center;gap:4px;padding:3px 9px;border-radius:18px;font-size:0.78rem;font-weight:700;}
+.pm-chip.cash{background:#e8f5e9;color:#4caf50;}
+.pm-chip.card{background:#e3f2fd;color:#2196f3;}
+.pm-chip.ewallet{background:#f3e5f5;color:#9c27b0;}
+@media print{.top-nav,.overlay,.drawer,.modal-bg,.r-actions{display:none!important;}.modal{padding:0;}.receipt{max-height:none;box-shadow:none;border-radius:0;}}
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <div class="nav-tab active" onclick="showPage('order')" data-i18n="nav.order">点餐</div>
+  <div class="nav-tab" onclick="showPage('staff')" data-i18n="nav.staff">员工</div>
+  <div class="nav-tab" onclick="showPage('owner')" data-i18n="nav.owner">商家报告</div>
+  <button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
+</div>
+
+<!-- ORDER PAGE -->
+<div class="page active" id="pg-order">
+  <div class="order-header">
+    <div>
+      <h1 data-i18n="brand.name">橙意咖啡厅</h1>
+      <div class="header-sub" data-i18n="brand.sub">每一杯都是温暖的心意</div>
+    </div>
+    <button class="cart-btn" onclick="toggleCart()">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span data-i18n="cart.title">购物车</span> <span class="ccnt" id="cartCount">0</span>
+    </button>
+  </div>
+  <div class="table-info-bar">
+    <div class="table-field">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e8650a" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <label data-i18n="table.num">桌号</label>
+      <input class="table-input" id="tableNum" type="text" value="A1">
+    </div>
+    <div class="table-field">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e8650a" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <label data-i18n="table.guests">人数</label>
+      <input class="table-input guests-input" id="guestNum" type="number" min="1" max="20" value="2">
+    </div>
+    <div class="table-field" style="margin-left:auto;font-size:0.8rem;color:#8a5a30;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e8650a" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span id="orderTime">--:--</span>
+    </div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div class="menu" id="menu"></div>
+</div>
+
+<!-- STAFF PAGE -->
+<div class="page" id="pg-staff">
+  <div class="staff-page">
+    <h2 data-i18n="staff.title">员工管理台</h2>
+    <p class="sub" data-i18n="staff.sub">查看订单状态，确认上菜</p>
+    <div class="order-cards" id="staffOrders"></div>
+  </div>
+</div>
+
+<!-- OWNER PAGE -->
+<div class="page" id="pg-owner">
+  <div class="report-page">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+      <h2 data-i18n="owner.title">商家报告</h2>
+      <button class="clear-btn" onclick="clearData()" data-i18n="owner.clear">清除数据</button>
+    </div>
+    <p class="sub" data-i18n="owner.sub">今日营业概况</p>
+    <div id="reportContent"></div>
+  </div>
+</div>
+
+<!-- Cart Drawer -->
+<div class="overlay" id="overlay" onclick="toggleCart()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <h2 id="drawerTitle"></h2>
+    <button class="close-btn" onclick="toggleCart()">✕</button>
+  </div>
+  <!-- Cart -->
+  <div class="d-page active" id="dp-cart">
+    <div class="d-scroll" id="drawerItems"></div>
+    <div class="d-footer">
+      <div class="fee-rows" id="feeRows"></div>
+      <div class="total-row"><span data-i18n="cart.total">总计</span><span class="total-val" id="totalVal">¥0.00</span></div>
+      <div class="action-btns">
+        <button class="btn-sec" onclick="showPage2('adj')" data-i18n="cart.adjust">调整</button>
+        <button class="btn-primary" id="checkoutBtn" onclick="showPage2('pay')" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          <span data-i18n="cart.pay">付款</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Adjustment -->
+  <div class="d-page" id="dp-adj">
+    <div class="d-scroll">
+      <div class="adj-section">
+        <div class="adj-title" data-i18n="adj.discount">折扣</div>
+        <div class="adj-row">
+          <div class="adj-btn" onclick="setDisc(this,10)" data-i18n="adj.d10">9折</div>
+          <div class="adj-btn" onclick="setDisc(this,20)" data-i18n="adj.d20">8折</div>
+          <div class="adj-btn" onclick="setDisc(this,30)" data-i18n="adj.d30">7折</div>
+          <div class="adj-btn" onclick="setDisc(this,50)" data-i18n="adj.d50">半价</div>
+          <input class="adj-input" type="number" id="discInput" min="0" max="99" oninput="setCustomDisc(this)">
+        </div>
+        <div class="disc-preview" id="discPreview"></div>
+      </div>
+      <div class="adj-section">
+        <div class="adj-title" data-i18n="adj.gift">赠菜</div>
+        <div class="adj-row" id="giftItemList"></div>
+      </div>
+      <div class="adj-section">
+        <div class="adj-title" data-i18n="adj.return">退菜</div>
+        <div class="adj-row" id="returnItemList"></div>
+      </div>
+      <div class="adj-section">
+        <div class="adj-title" data-i18n="adj.void">免单</div>
+        <div class="adj-row">
+          <div class="adj-btn red" id="voidBtn" onclick="toggleVoid()" data-i18n="adj.voidBtn">整单免单</div>
+        </div>
+        <div style="font-size:0.78rem;color:#aaa;margin-top:5px;" data-i18n="adj.voidNote">免单后总额为 ¥0.00，需主管授权</div>
+      </div>
+      <div class="adj-section">
+        <div class="adj-title" data-i18n="adj.note">备注</div>
+        <input class="adj-input" style="width:100%;margin-top:4px;" type="text" id="orderNote">
+      </div>
+    </div>
+    <div class="d-footer">
+      <button class="btn-sec" style="width:100%;margin-bottom:8px;" onclick="showPage2('cart')" data-i18n="btn.back">← 返回</button>
+      <button class="btn-primary" style="width:100%;" onclick="showPage2('pay')" id="adjPayBtn" disabled data-i18n="adj.confirm">确认并付款</button>
+    </div>
+  </div>
+  <!-- Payment -->
+  <div class="d-page" id="dp-pay">
+    <div class="d-scroll">
+      <div style="background:#fff8f2;border-radius:12px;padding:13px;margin-bottom:12px;">
+        <div style="font-weight:700;font-size:0.88rem;margin-bottom:7px;" data-i18n="pay.summary">订单摘要</div>
+        <div id="paySummary"></div>
+        <div style="display:flex;justify-content:space-between;font-weight:800;font-size:0.98rem;color:#e8650a;padding-top:7px;border-top:1px dashed #f0d0b0;margin-top:5px;">
+          <span data-i18n="pay.due">应付总计</span><span id="payTotal">¥0.00</span>
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <div class="adj-title" data-i18n="pay.tip">小费</div>
+        <div class="tip-opts" style="margin-top:7px;">
+          <div class="tip-opt selected" onclick="selTip(this,0)" data-i18n="tip.none">不加</div>
+          <div class="tip-opt" onclick="selTip(this,5)">5%</div>
+          <div class="tip-opt" onclick="selTip(this,10)">10%</div>
+          <div class="tip-opt" onclick="selTip(this,15)">15%</div>
+        </div>
+      </div>
+      <div class="adj-title" data-i18n="pay.method">付款方式</div>
+      <div class="pay-methods" style="margin-top:7px;">
+        <div>
+          <div class="pm" onclick="selPay(this,'cash')">
+            <div class="pm-icon cash"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><circle cx="12" cy="12" r="3"/></svg></div>
+            <div class="pm-info"><div class="pm-name" data-i18n="pay.cash">现金</div><div class="pm-sub" data-i18n="pay.cashSub">请备妥零钱</div></div>
+            <div class="pm-radio"><div class="pm-dot"></div></div>
+          </div>
+          <div class="sub-panel" id="cashPanel">
+            <div class="cash-row"><span class="cpfx">¥</span><input class="cinput" type="number" id="cashInput" min="0" step="0.01" oninput="calcChange()"></div>
+            <div class="qamts" id="quickAmts"></div>
+            <div class="change-box" id="changeBox"><span data-i18n="pay.change">找零</span><span id="changeAmt">¥0.00</span></div>
+            <div class="insuf" id="insufMsg" data-i18n="pay.insuf">金额不足，请重新输入</div>
+          </div>
+        </div>
+        <div>
+          <div class="pm" onclick="selPay(this,'card')">
+            <div class="pm-icon card"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/><line x1="5" y1="15" x2="9" y2="15"/></svg></div>
+            <div class="pm-info"><div class="pm-name" data-i18n="pay.card">信用卡 / 扣款卡</div><div class="pm-sub">Visa · Mastercard · JCB</div></div>
+            <div class="pm-radio"><div class="pm-dot"></div></div>
+          </div>
+        </div>
+        <div>
+          <div class="pm" onclick="selPay(this,'ewallet')">
+            <div class="pm-icon ew"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 12h2"/></svg></div>
+            <div class="pm-info"><div class="pm-name" data-i18n="pay.ew">电子钱包</div><div class="pm-sub">Alipay · WeChat · Apple Pay</div></div>
+            <div class="pm-radio"><div class="pm-dot"></div></div>
+          </div>
+          <div class="sub-panel" id="ewPanel">
+            <div class="ew-opts">
+              <div class="ew-opt selected" onclick="selEw(this,'alipay')">Alipay 支付宝</div>
+              <div class="ew-opt" onclick="selEw(this,'wechat')">WeChat 微信</div>
+              <div class="ew-opt" onclick="selEw(this,'apple')">Apple Pay</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="d-footer">
+      <button class="btn-sec" style="width:100%;margin-bottom:8px;" onclick="showPage2('cart')" data-i18n="btn.back">← 返回</button>
+      <button class="btn-primary" style="width:100%;" id="payNowBtn" onclick="confirmPay()" disabled data-i18n="pay.confirm">确认付款</button>
+    </div>
+  </div>
+</div>
+
+<!-- Receipt Modal -->
+<div class="modal" id="modal">
+  <div class="modal-bg" onclick="closeReceipt()"></div>
+  <div class="receipt" id="receipt"></div>
+</div>
+
+<script>
+// ════ i18n ════
+const i18n={
+  zh:{
+    'nav.order':'点餐','nav.staff':'员工','nav.owner':'商家报告',
+    'brand.name':'橙意咖啡厅','brand.sub':'每一杯都是温暖的心意',
+    'cart.title':'购物车','cart.total':'总计','cart.adjust':'调整','cart.pay':'付款',
+    'cart.empty':'购物车空空如也',
+    'table.num':'桌号','table.guests':'人数',
+    'adj.discount':'折扣','adj.d10':'9折','adj.d20':'8折','adj.d30':'7折','adj.d50':'半价',
+    'adj.gift':'赠菜','adj.return':'退菜','adj.void':'免单','adj.voidBtn':'整单免单',
+    'adj.voidNote':'免单后总额为 ¥0.00，需主管授权',
+    'adj.note':'备注','adj.notePlaceholder':'例：少冰、无糖、过敏…',
+    'adj.discInput':'自定折扣 %','adj.confirm':'确认并付款',
+    'btn.back':'← 返回',
+    'pay.summary':'订单摘要','pay.due':'应付总计','pay.tip':'小费','tip.none':'不加',
+    'pay.method':'付款方式','pay.cash':'现金','pay.cashSub':'请备妥零钱',
+    'pay.card':'信用卡 / 扣款卡','pay.ew':'电子钱包',
+    'pay.change':'找零','pay.insuf':'金额不足，请重新输入',
+    'pay.confirm':'确认付款','pay.cashInput':'输入金额',
+    'staff.title':'员工管理台','staff.sub':'查看订单状态，确认上菜',
+    'staff.empty':'目前没有待处理订单',
+    'staff.table':'桌','staff.guests':'人','staff.order':'单号',
+    'staff.note':'备注','staff.serveItem':'上菜','staff.served':'已上菜',
+    'staff.serveAll':'全部上菜','staff.done':'已完成','staff.cancel':'取消',
+    'staff.pending':'待出餐','staff.serving':'出餐中','staff.total':'合计',
+    'owner.title':'商家报告','owner.sub':'今日营业概况','owner.clear':'清除数据',
+    'owner.noData':'暂无销售数据，完成点单后即可查看报告。',
+    'owner.revenue':'总收入','owner.orders':'订单数','owner.avg':'客均消费','owner.guests':'服务人数',
+    'owner.net':'实收金额','owner.discOrders':'折扣订单','owner.giftOrders':'赠菜订单','owner.voidOrders':'免单笔数',
+    'owner.netSub':'含服务费/小费','owner.discSub':'折扣笔数','owner.giftSub':'赠菜笔数','owner.voidSub':'需主管授权',
+    'owner.topItems':'热销品项 TOP 5','owner.qty':'份','owner.payMix':'付款方式分布',
+    'owner.payCombo':'付款组合','owner.orders2':'笔','owner.history':'订单明细','owner.total2':'笔',
+    'owner.clearConfirm':'确定要清除所有销售数据吗？此操作无法撤销。',
+    'receipt.success':'付款成功','receipt.void':'免单成功',
+    'receipt.sub':'感谢您光临橙意咖啡厅','receipt.storeSub':'每一杯都是温暖的心意',
+    'receipt.order':'单号','receipt.datetime':'日期时间','receipt.table':'桌号',
+    'receipt.guests':'人数','receipt.note':'备注','receipt.person':'人',
+    'receipt.subtotal':'小计','receipt.svc':'服务费（5%）',
+    'receipt.disc':'折扣','receipt.gift':'赠菜减免','receipt.tip':'小费',
+    'receipt.void2':'整单免单','receipt.total':'应付总计',
+    'receipt.paid':'顾客支付','receipt.change':'找零',
+    'receipt.payDetail':'付款明细','receipt.item':'品项','receipt.qty2':'数量','receipt.amt':'金额',
+    'receipt.thanks':'谢谢惠顾，欢迎再次光临','receipt.print':'列印收据','receipt.close':'完成',
+    'receipt.gift2':'赠','receipt.svcLabel':'服务费 5%',
+    'pay.cash2':'现金','pay.card2':'信用卡','pay.void2':'免单',
+    'disc.tag':'折','gift.tag':'赠菜','void.tag':'免单',
+  },
+  en:{
+    'nav.order':'Order','nav.staff':'Staff','nav.owner':'Reports',
+    'brand.name':'Orange Café','brand.sub':'Every cup, warmly crafted',
+    'cart.title':'Cart','cart.total':'Total','cart.adjust':'Adjust','cart.pay':'Pay',
+    'cart.empty':'Your cart is empty',
+    'table.num':'Table','table.guests':'Guests',
+    'adj.discount':'Discount','adj.d10':'10% Off','adj.d20':'20% Off','adj.d30':'30% Off','adj.d50':'Half Price',
+    'adj.gift':'Complimentary','adj.return':'Remove Item','adj.void':'Void Order','adj.voidBtn':'Void Entire Order',
+    'adj.voidNote':'Total becomes ¥0.00. Manager approval required.',
+    'adj.note':'Note','adj.notePlaceholder':'e.g. Less ice, no sugar, allergy…',
+    'adj.discInput':'Custom discount %','adj.confirm':'Confirm & Pay',
+    'btn.back':'← Back',
+    'pay.summary':'Order Summary','pay.due':'Amount Due','pay.tip':'Gratuity','tip.none':'No tip',
+    'pay.method':'Payment Method','pay.cash':'Cash','pay.cashSub':'Please prepare exact change',
+    'pay.card':'Credit / Debit Card','pay.ew':'E-Wallet',
+    'pay.change':'Change','pay.insuf':'Insufficient amount',
+    'pay.confirm':'Confirm Payment','pay.cashInput':'Enter amount',
+    'staff.title':'Staff Dashboard','staff.sub':'Manage orders & serve dishes',
+    'staff.empty':'No pending orders at the moment',
+    'staff.table':'Table','staff.guests':'guests','staff.order':'Order',
+    'staff.note':'Note','staff.serveItem':'Serve','staff.served':'Served',
+    'staff.serveAll':'Serve All','staff.done':'Completed','staff.cancel':'Cancel',
+    'staff.pending':'Pending','staff.serving':'Serving','staff.total':'Total',
+    'owner.title':'Business Report','owner.sub':'Today\'s Overview','owner.clear':'Clear Data',
+    'owner.noData':'No data yet. Complete an order to see reports.',
+    'owner.revenue':'Revenue','owner.orders':'Orders','owner.avg':'Avg. Order','owner.guests':'Guests Served',
+    'owner.net':'Net Revenue','owner.discOrders':'Discounted','owner.giftOrders':'Complimentary','owner.voidOrders':'Voided',
+    'owner.netSub':'Incl. service & tip','owner.discSub':'discount orders','owner.giftSub':'comp orders','owner.voidSub':'Mgr approval req.',
+    'owner.topItems':'Top 5 Items','owner.qty':'sold','owner.payMix':'Payment Mix',
+    'owner.payCombo':'Payment Breakdown','owner.orders2':'orders','owner.history':'Order History','owner.total2':'total',
+    'owner.clearConfirm':'Clear all sales data? This cannot be undone.',
+    'receipt.success':'Payment Successful','receipt.void':'Order Voided',
+    'receipt.sub':'Thank you for visiting Orange Café','receipt.storeSub':'Every cup, warmly crafted',
+    'receipt.order':'Order No.','receipt.datetime':'Date & Time','receipt.table':'Table',
+    'receipt.guests':'Guests','receipt.note':'Note','receipt.person':'pax',
+    'receipt.subtotal':'Subtotal','receipt.svc':'Service Charge (5%)',
+    'receipt.disc':'Discount','receipt.gift':'Complimentary','receipt.tip':'Gratuity',
+    'receipt.void2':'Order Voided','receipt.total':'Amount Due',
+    'receipt.paid':'Cash Tendered','receipt.change':'Change',
+    'receipt.payDetail':'Payment Details','receipt.item':'Item','receipt.qty2':'Qty','receipt.amt':'Amt',
+    'receipt.thanks':'Thank you! We hope to see you again.','receipt.print':'Print Receipt','receipt.close':'Done',
+    'receipt.gift2':'Comp','receipt.svcLabel':'Service 5%',
+    'pay.cash2':'Cash','pay.card2':'Credit Card','pay.void2':'Voided',
+    'disc.tag':'Disc','gift.tag':'Comp','void.tag':'Void',
+  }
+};
+
+let lang='zh';
+function t(k){return (i18n[lang]||i18n.zh)[k]||k;}
+
+function toggleLang(){
+  lang=lang==='zh'?'en':'zh';
+  document.getElementById('langBtn').textContent=lang==='zh'?'EN':'中文';
+  applyI18n();
+  renderMenu();
+  updateCartUI();
+  // re-render active page content
+  const activePage=document.querySelector('.page.active');
+  if(activePage.id==='pg-staff') renderStaff();
+  if(activePage.id==='pg-owner') renderReport();
+  // update drawer title
+  const activeDP=document.querySelector('.d-page.active');
+  if(activeDP) setDrawerTitle(activeDP.id);
+  // update order note placeholder
+  document.getElementById('orderNote').placeholder=t('adj.notePlaceholder');
+  document.getElementById('cashInput').placeholder=t('pay.cashInput');
+  document.getElementById('discInput').placeholder=t('adj.discInput');
+}
+
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.getAttribute('data-i18n');
+    el.textContent=t(k);
+  });
+}
+
+// ── SVGs ──
+const svgs={
+  latte:`<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="160" fill="#f9e4c8"/><rect x="55" y="55" width="90" height="75" rx="8" fill="#a0522d"/><rect x="58" y="58" width="84" height="69" rx="6" fill="#6b3a1f"/><ellipse cx="100" cy="58" rx="42" ry="14" fill="#d4a574"/><ellipse cx="100" cy="58" rx="36" ry="10" fill="#e8c49a"/><path d="M88,54 C88,50 82,46 82,52 C82,56 88,62 100,68 C112,62 118,56 118,52 C118,46 112,50 112,54 C112,50 100,44 88,54Z" fill="white" opacity="0.7"/><rect x="130" y="90" width="18" height="6" rx="3" fill="#a0522d"/><rect x="145" y="86" width="6" height="14" rx="3" fill="#a0522d"/></svg>`,
+  cappuccino:`<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="160" fill="#fef3e2"/><rect x="58" y="60" width="84" height="68" rx="10" fill="#8B4513"/><rect x="61" y="63" width="78" height="62" rx="8" fill="#5c2d0e"/><ellipse cx="100" cy="60" rx="40" ry="13" fill="#d2a679"/><ellipse cx="100" cy="60" rx="33" ry="9" fill="#f5dfc0"/><circle cx="90" cy="57" r="5" fill="white" opacity="0.8"/><circle cx="100" cy="54" r="6" fill="white" opacity="0.9"/><circle cx="110" cy="57" r="5" fill="white" opacity="0.8"/><rect x="140" y="88" width="16" height="5" rx="2.5" fill="#8B4513"/><rect x="153" y="84" width="5" height="13" rx="2.5" fill="#8B4513"/></svg>`,
+  americano:`<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="160" fill="#f0ede8"/><rect x="62" y="58" width="76" height="72" rx="4" fill="#ddd"/><rect x="65" y="61" width="70" height="52" rx="3" fill="#2c1a0e"/><ellipse cx="100" cy="61" rx="35" ry="10" fill="#3d2510"/><ellipse cx="92" cy="63" rx="8" ry="3" fill="#4a3020" opacity="0.5"/><rect x="136" y="90" width="14" height="5" rx="2" fill="#ddd"/><rect x="147" y="86" width="5" height="13" rx="2" fill="#ddd"/></svg>`,
+  mocha:`<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="160" fill="#f5e6d3"/><rect x="56" y="52" width="88" height="78" rx="10" fill="#5c2d0e"/><rect x="59" y="55" width="82" height="72" rx="8" fill="#3b1a08"/><ellipse cx="100" cy="54" rx="41" ry="14" fill="#f0c8a0"/><path d="M65,54 Q75,42 85,54 Q95,42 105,54 Q115,42 125,54" fill="white" opacity="0.9"/><rect x="142" y="90" width="16" height="5" rx="2.5" fill="#5c2d0e"/></svg>`,
+  caramel:`<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="160" fill="#fef9e7"/><rect x="56" y="50" width="88" height="80" rx="10" fill="#a0522d"/><rect x="59" y="53" width="82" height="74" rx="8" fill="#6b3a1f"/><rect x="59" y="53" width="82" height="25" rx="8" fill="#d4a017" opacity="0.8"/><ellipse cx="100" cy="53" rx="41" ry="13" fill="#f5dfa0"/><rect x="142" y="88" width="16" height="5" rx="2.5" fill="#a0522d"/></svg>`,
+  earlgrey:`<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="160" fill="#fdf6f0"/><path d="M65,70 L72,126 L128,126 L135,70 Z" fill="#f5f0eb"/><path d="M69,95 L73,122 L127,122 L131,95 Z" fill="#8b4513" opacity="0.7"/><ellipse cx="100" cy="70" rx="35" ry="10" fill="#e0c8a8"/><path d="M135,85 Q155,85 155,100 Q155,115 135,115" stroke="#e0c8a8" stroke-width="8" fill="none" stroke-linecap="round"/><line x1="100" y1="70" x2="100" y2="55" stroke="#8b6914" stroke-width="1.5"/><rect x="96" y="50" width="8" height="6" rx="1" fill="#8b6914"/></svg>`,
+  matcha:`<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="160" fill="#f0f7f0"/><rect x="56" y="52" width="88" height="78" rx="10" fill="#4a7c4a"/><rect x="59" y="55" width="82" height="45" rx="8" fill="#6aaa6a" opacity="0.8"/><ellipse cx="100" cy="55" rx="41" ry="13" fill="#e8f5e8"/><ellipse cx="100" cy="53" rx="20" ry="5" fill="#5aaa5a" opacity="0.5"/></svg>`,
+  peachtea:`<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="160" fill="#fff5ee"/><path d="M63,45 L70,130 L130,130 L137,45 Z" fill="#e8f4ff" opacity="0.6"/><path d="M67,90 L72,127 L128,127 L133,90 Z" fill="#f4a460" opacity="0.8"/><rect x="78" y="95" width="18" height="15" rx="3" fill="white" opacity="0.7"/><circle cx="100" cy="48" r="14" fill="#f4a460"/><circle cx="100" cy="48" r="10" fill="#f9c090"/><rect x="116" y="38" width="5" height="90" rx="2.5" fill="#ff8c69" opacity="0.9"/></svg>`,
+  tiramisu:`<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="160" fill="#fdf6f0"/><rect x="45" y="80" width="110" height="50" rx="8" fill="#c8a87a"/><rect x="45" y="80" width="110" height="8" rx="4" fill="#8b4513" opacity="0.5"/><rect x="47" y="95" width="106" height="18" rx="2" fill="#f8f5ee"/><rect x="47" y="110" width="106" height="18" rx="2" fill="#d4a855"/></svg>`,
+  pancake:`<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="160" fill="#fff9f0"/><ellipse cx="100" cy="115" rx="52" ry="10" fill="#e8a84a"/><rect x="48" y="105" width="104" height="12" rx="6" fill="#f0b85a"/><ellipse cx="100" cy="97" rx="48" ry="9" fill="#e8a04a"/><rect x="52" y="88" width="96" height="12" rx="6" fill="#f0b05a"/><ellipse cx="100" cy="72" rx="44" ry="8" fill="#fac87a"/><rect x="88" y="64" width="24" height="10" rx="4" fill="#ffd966" opacity="0.9"/><circle cx="108" cy="62" r="5" fill="#e84040"/><circle cx="96" cy="60" r="4" fill="#4040c8"/></svg>`,
+  cheesecake:`<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="160" fill="#fff8f5"/><path d="M100,65 L55,130 L145,130 Z" fill="#f9f0e0" opacity="0.8"/><path d="M55,118 L145,118 L145,130 L55,130 Z" fill="#c8a050"/><ellipse cx="100" cy="67" rx="38" ry="8" fill="#ff6b6b" opacity="0.9"/><path d="M57,100 L143,100 L145,118 L55,118 Z" fill="#fdf5e8"/></svg>`,
+  waffle:`<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="160" fill="#fff9f0"/><rect x="50" y="70" width="100" height="65" rx="8" fill="#e8a84a"/><line x1="50" y1="83" x2="150" y2="83" stroke="#c8882a" stroke-width="2"/><line x1="50" y1="96" x2="150" y2="96" stroke="#c8882a" stroke-width="2"/><line x1="50" y1="109" x2="150" y2="109" stroke="#c8882a" stroke-width="2"/><line x1="65" y1="70" x2="65" y2="135" stroke="#c8882a" stroke-width="2"/><line x1="95" y1="70" x2="95" y2="135" stroke="#c8882a" stroke-width="2"/><line x1="125" y1="70" x2="125" y2="135" stroke="#c8882a" stroke-width="2"/><circle cx="88" cy="62" r="18" fill="#ffd966"/><circle cx="112" cy="58" r="15" fill="#ffb347"/></svg>`,
+  avocado:`<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="160" fill="#f0f7f0"/><rect x="30" y="70" width="64" height="58" rx="8" fill="#d4a855"/><rect x="106" y="70" width="64" height="58" rx="8" fill="#d4a855"/><ellipse cx="62" cy="85" rx="22" ry="16" fill="#7aaa5a"/><ellipse cx="62" cy="87" rx="14" ry="10" fill="#c8e8a0"/><ellipse cx="62" cy="88" rx="7" ry="6" fill="#8b6914"/><ellipse cx="138" cy="90" rx="22" ry="18" fill="white"/><circle cx="138" cy="92" r="10" fill="#ffd966"/></svg>`,
+  panini:`<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="160" fill="#fff8f0"/><path d="M40,110 Q40,130 100,130 Q160,130 160,110 L155,105 L45,105 Z" fill="#d4a050"/><rect x="45" y="95" width="110" height="10" rx="2" fill="#e84040" opacity="0.8"/><rect x="45" y="88" width="110" height="9" rx="2" fill="#f5f5dc" opacity="0.9"/><path d="M40,80 Q40,60 100,60 Q160,60 160,80 L155,85 L45,85 Z" fill="#d4a050"/><line x1="75" y1="62" x2="75" y2="85" stroke="#b8882a" stroke-width="3" opacity="0.5"/><line x1="115" y1="62" x2="115" y2="85" stroke="#b8882a" stroke-width="3" opacity="0.5"/></svg>`,
+  salad:`<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="160" fill="#f0f9f0"/><path d="M35,90 Q35,140 100,140 Q165,140 165,90 Z" fill="#e8f0e0"/><ellipse cx="100" cy="90" rx="65" ry="16" fill="#d8e8c8"/><ellipse cx="80" cy="95" rx="25" ry="18" fill="#5aaa5a" opacity="0.8"/><ellipse cx="120" cy="95" rx="25" ry="18" fill="#7acc7a" opacity="0.8"/><ellipse cx="100" cy="88" rx="28" ry="16" fill="#5aaa5a" opacity="0.7"/><rect x="72" y="88" width="12" height="10" rx="2" fill="#d4a855"/><circle cx="95" cy="92" r="7" fill="#e84040"/><circle cx="108" cy="98" r="6" fill="#e85050"/></svg>`
+};
+
+// menu data: zh + en names/desc
+const menuData={
+  zh:{
+    cats:['咖啡','茶饮','甜点','轻食'],
+    items:[
+      {id:1,cat:'咖啡',name:'拿铁咖啡',nameEn:'Latte',desc:'浓缩咖啡与香浓牛奶的丝滑融合',descEn:'Espresso with velvety steamed milk',price:32,svgKey:'latte'},
+      {id:2,cat:'咖啡',name:'卡布奇诺',nameEn:'Cappuccino',desc:'三分之一浓缩、牛奶、奶泡的经典意式比例',descEn:'Classic 1/3 espresso, milk & foam',price:34,svgKey:'cappuccino'},
+      {id:3,cat:'咖啡',name:'美式咖啡',nameEn:'Americano',desc:'纯粹浓缩加水，清爽干净',descEn:'Espresso diluted with hot water',price:28,svgKey:'americano'},
+      {id:4,cat:'咖啡',name:'摩卡咖啡',nameEn:'Mocha',desc:'咖啡与巧克力的甜蜜邂逅',descEn:'Espresso, chocolate & whipped cream',price:36,svgKey:'mocha'},
+      {id:5,cat:'咖啡',name:'焦糖玛奇朵',nameEn:'Caramel Macchiato',desc:'香草奶泡与焦糖糖浆层层叠加',descEn:'Vanilla foam with caramel drizzle',price:38,svgKey:'caramel'},
+      {id:6,cat:'茶饮',name:'伯爵红茶',nameEn:'Earl Grey Tea',desc:'佛手柑迷人香气，经典英式下午茶',descEn:'Bergamot-infused black tea',price:26,svgKey:'earlgrey'},
+      {id:7,cat:'茶饮',name:'抹茶拿铁',nameEn:'Matcha Latte',desc:'日本宇治抹茶与鲜奶完美融合',descEn:'Uji matcha blended with fresh milk',price:34,svgKey:'matcha'},
+      {id:8,cat:'茶饮',name:'水蜜桃茶',nameEn:'Peach Tea',desc:'新鲜水蜜桃与红茶的清新组合',descEn:'Fresh peach with aromatic black tea',price:30,svgKey:'peachtea'},
+      {id:9,cat:'甜点',name:'提拉米苏',nameEn:'Tiramisù',desc:'浸透咖啡的手指饼干，马斯卡彭慕斯',descEn:'Coffee-soaked ladyfingers & mascarpone',price:42,svgKey:'tiramisu'},
+      {id:10,cat:'甜点',name:'松饼套餐',nameEn:'Pancake Set',desc:'蓬松松饼配新鲜水果与枫糖浆',descEn:'Fluffy pancakes with fruits & maple syrup',price:45,svgKey:'pancake'},
+      {id:11,cat:'甜点',name:'芝士蛋糕',nameEn:'Cheesecake',desc:'浓郁奶香，绵密顺滑',descEn:'Rich and creamy baked cheesecake',price:38,svgKey:'cheesecake'},
+      {id:12,cat:'甜点',name:'华夫饼',nameEn:'Waffle',desc:'酥脆外皮配冰淇淋与蓝莓酱',descEn:'Crispy waffle with ice cream & berries',price:40,svgKey:'waffle'},
+      {id:13,cat:'轻食',name:'牛油果三明治',nameEn:'Avocado Sandwich',desc:'全麦吐司搭配牛油果与溏心蛋',descEn:'Whole-wheat toast with avocado & egg',price:48,svgKey:'avocado'},
+      {id:14,cat:'轻食',name:'意式帕尼尼',nameEn:'Panini',desc:'烤制酥脆，火腿芝士夹心',descEn:'Grilled panini with ham and cheese',price:45,svgKey:'panini'},
+      {id:15,cat:'轻食',name:'凯撒沙拉',nameEn:'Caesar Salad',desc:'新鲜蔬菜搭配帕马森芝士与凯撒酱',descEn:'Fresh greens, parmesan & caesar dressing',price:36,svgKey:'salad'},
+    ]
+  }
+};
+const cats={zh:['咖啡','茶饮','甜点','轻食'],en:['Coffee','Tea','Dessert','Light Bites']};
+function getCats(){return cats[lang];}
+function getCatItems(catIdx){
+  const zhCat=cats.zh[catIdx];
+  return menuData.zh.items.filter(i=>i.cat===zhCat);
+}
+function itemName(item){return lang==='en'?item.nameEn:item.name;}
+function itemDesc(item){return lang==='en'?item.descEn:item.desc;}
+
+// ── STATE ──
+let cart={},activeTab=0;
+let discPct=0,giftItems=new Set(),returnItems=new Set(),isVoid=false;
+let payMethod=null,ewChoice='alipay',tipPct=0;
+let orders=[],pendingOrders=[],orderNum=1000;
+const SVC=0.05;
+
+const fmt=n=>`¥${n.toFixed(2)}`;
+function findItem(id){return menuData.zh.items.find(i=>i.id===id);}
+
+function getAmounts(){
+  let subtotalCents=Object.entries(cart).filter(([id])=>!returnItems.has(Number(id))).reduce((s,[id,q])=>{
+    const it=findItem(Number(id));return s+(it?it.price*q*100:0);
+  },0);
+  const giftCents=Object.entries(cart).filter(([id])=>giftItems.has(Number(id))).reduce((s,[id,q])=>{
+    const it=findItem(Number(id));return s+(it?it.price*q*100:0);
+  },0);
+  const serviceCents=Math.floor(subtotalCents*SVC);
+  const tipCents=Math.floor(subtotalCents*tipPct/100);
+  const discCents=Math.floor(subtotalCents*discPct/100);
+  let totalCents=subtotalCents+serviceCents+tipCents-discCents-giftCents;
+  if(isVoid) totalCents=0;
+  if(totalCents<0) totalCents=0;
+  return{subtotal:subtotalCents/100,service:serviceCents/100,tip:tipCents/100,disc:discCents/100,gift:giftCents/100,total:totalCents/100};
+}
+
+function showPage(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('pg-'+p).classList.add('active');
+  const idx={order:0,staff:1,owner:2}[p];
+  document.querySelectorAll('.nav-tab')[idx].classList.add('active');
+  if(p==='staff') renderStaff();
+  if(p==='owner') renderReport();
+}
+
+function setDrawerTitle(dpId){
+  const map={'dp-cart':t('cart.title'),'dp-adj':t('adj.discount')+' / '+t('adj.note'),'dp-pay':t('pay.method')};
+  document.getElementById('drawerTitle').textContent=map[dpId]||t('cart.title');
+}
+
+function showPage2(p){
+  document.querySelectorAll('.d-page').forEach(el=>el.classList.remove('active'));
+  document.getElementById('dp-'+p).classList.add('active');
+  setDrawerTitle('dp-'+p);
+  if(p==='adj') buildAdjPanel();
+  if(p==='pay') refreshPayPage();
+}
+
+function init(){
+  const el=document.getElementById('tabs');
+  getCats().forEach((cat,i)=>{
+    const b=document.createElement('button');
+    b.className='tab'+(i===activeTab?' active':'');
+    b.textContent=cat;b.onclick=()=>switchTab(i);el.appendChild(b);
+  });
+  applyI18n();
+  document.getElementById('orderNote').placeholder=t('adj.notePlaceholder');
+  document.getElementById('cashInput').placeholder=t('pay.cashInput');
+  document.getElementById('discInput').placeholder=t('adj.discInput');
+  renderMenu();
+  updateTime();
+  setInterval(updateTime,60000);
+  setDrawerTitle('dp-cart');
+}
+
+function updateTime(){
+  const n=new Date();
+  document.getElementById('orderTime').textContent=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+}
+
+function switchTab(i){
+  activeTab=i;
+  document.querySelectorAll('.tab').forEach((t2,j)=>t2.classList.toggle('active',j===i));
+  renderMenu();
+}
+
+function renderMenu(){
+  // update tab labels
+  document.querySelectorAll('.tab').forEach((el,i)=>{el.textContent=getCats()[i];});
+  const el=document.getElementById('menu');el.innerHTML='';
+  getCatItems(activeTab).forEach(item=>{
+    const qty=cart[item.id]||0,c=document.createElement('div');
+    c.className='card';
+    c.innerHTML=`<div class="card-img">${svgs[item.svgKey]}</div>
+      <div class="card-body">
+        <div class="card-name">${itemName(item)}</div>
+        <div class="card-name-sub">${lang==='zh'?item.nameEn:item.name}</div>
+        <div class="card-desc">${itemDesc(item)}</div>
+        <div class="card-footer">
+          <span class="card-price">${fmt(item.price)}</span>
+          <div id="ctrl-${item.id}">${renderCtrl(item.id,qty)}</div>
+        </div>
+      </div>`;
+    el.appendChild(c);
+  });
+}
+
+function renderCtrl(id,qty){
+  if(!qty) return `<button class="add-btn" onclick="addItem(${id})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>`;
+  return `<div class="card-qty">
+    <button class="cqb minus" onclick="chgQty(${id},-1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+    <span class="cqn">${qty}</span>
+    <button class="cqb" onclick="chgQty(${id},1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+  </div>`;
+}
+function addItem(id){cart[id]=(cart[id]||0)+1;syncCtrl(id);bump();}
+function chgQty(id,d){cart[id]=(cart[id]||0)+d;if(cart[id]<=0){delete cart[id];giftItems.delete(id);returnItems.delete(id);}syncCtrl(id);}
+function syncCtrl(id){const el=document.getElementById(`ctrl-${id}`);if(el)el.innerHTML=renderCtrl(id,cart[id]||0);updateCartUI();}
+function bump(){const el=document.getElementById('cartCount');el.classList.remove('badge-bump');void el.offsetWidth;el.classList.add('badge-bump');}
+
+function updateCartUI(){
+  const count=Object.values(cart).reduce((s,q)=>s+q,0);
+  document.getElementById('cartCount').textContent=count;
+  const{subtotal,service,disc,gift,tip,total}=getAmounts();
+  let rows=`<div class="fee-row"><span>${t('receipt.subtotal')}</span><span>${fmt(subtotal)}</span></div>`;
+  rows+=`<div class="fee-row"><span>${t('receipt.svcLabel')}</span><span>${fmt(service)}</span></div>`;
+  if(tip>0) rows+=`<div class="fee-row"><span>${t('receipt.tip')} (${tipPct}%)</span><span>${fmt(tip)}</span></div>`;
+  if(disc>0) rows+=`<div class="fee-row discount"><span>${t('receipt.disc')} (-${discPct}%)</span><span>-${fmt(disc)}</span></div>`;
+  if(gift>0) rows+=`<div class="fee-row gift"><span>${t('receipt.gift')}</span><span>-${fmt(gift)}</span></div>`;
+  if(isVoid) rows+=`<div class="fee-row" style="color:#e91e63"><span>${t('receipt.void2')}</span><span>¥0.00</span></div>`;
+  document.getElementById('feeRows').innerHTML=rows;
+  document.getElementById('totalVal').textContent=fmt(total);
+  document.getElementById('checkoutBtn').disabled=count===0;
+  if(document.getElementById('adjPayBtn')) document.getElementById('adjPayBtn').disabled=count===0;
+  renderDrawerItems();
+}
+
+function renderDrawerItems(){
+  const el=document.getElementById('drawerItems');
+  const entries=Object.entries(cart).filter(([,q])=>q>0);
+  if(!entries.length){
+    el.innerHTML=`<div class="empty-cart"><svg viewBox="0 0 24 24" fill="none" stroke="#c0a080" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><p>${t('cart.empty')}</p></div>`;
+    return;
+  }
+  el.innerHTML=entries.map(([id,qty])=>{
+    const it=findItem(Number(id));
+    const isGift=giftItems.has(Number(id)),isReturn=returnItems.has(Number(id));
+    const note=isGift?`<div class="ci-note" style="color:#4caf50">${t('adj.gift')}</div>`:isReturn?`<div class="ci-note" style="color:#e53935">${t('adj.return')}</div>`:'';
+    return `<div class="cart-item" style="${isReturn?'opacity:0.4':''}">
+      <div class="ct">${svgs[it.svgKey]}</div>
+      <div class="ci-info">
+        <div class="ci-name">${itemName(it)}</div>
+        <div class="ci-name-sub">${lang==='zh'?it.nameEn:it.name}</div>
+        <div class="ci-price">${fmt(it.price)}</div>${note}
+      </div>
+      <div class="qc"><button class="qb" onclick="dcQty(${id},-1)">−</button><span class="qn">${qty}</span><button class="qb" onclick="dcQty(${id},1)">+</button></div>
+      <button class="del-btn" onclick="delItem(${id})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+    </div>`;
+  }).join('');
+}
+function dcQty(id,d){cart[id]=(cart[id]||0)+d;if(cart[id]<=0){delete cart[id];giftItems.delete(id);returnItems.delete(id);}syncCtrl(id);}
+function delItem(id){delete cart[id];giftItems.delete(id);returnItems.delete(id);syncCtrl(id);}
+
+function buildAdjPanel(){
+  const entries=Object.entries(cart).filter(([,q])=>q>0);
+  document.getElementById('giftItemList').innerHTML=entries.map(([id])=>{
+    const it=findItem(Number(id)),active=giftItems.has(Number(id));
+    return `<div class="adj-btn green ${active?'active':''}" onclick="toggleGift(${id})">${itemName(it)}</div>`;
+  }).join('');
+  document.getElementById('returnItemList').innerHTML=entries.map(([id])=>{
+    const it=findItem(Number(id)),active=returnItems.has(Number(id));
+    return `<div class="adj-btn red ${active?'active':''}" onclick="toggleReturn(${id})">${itemName(it)}</div>`;
+  }).join('');
+  document.getElementById('voidBtn').classList.toggle('active',isVoid);
+  updateDiscPreview();
+  // update i18n in adj panel
+  applyI18n();
+}
+function setDisc(el,pct){
+  document.querySelectorAll('#dp-adj .adj-btn:not(.green):not(.red):not(#voidBtn)').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');discPct=pct;document.getElementById('discInput').value='';
+  updateDiscPreview();updateCartUI();
+}
+function setCustomDisc(inp){
+  document.querySelectorAll('#dp-adj .adj-btn:not(.green):not(.red):not(#voidBtn)').forEach(b=>b.classList.remove('active'));
+  discPct=Math.min(99,Math.max(0,parseInt(inp.value)||0));
+  updateDiscPreview();updateCartUI();
+}
+function updateDiscPreview(){
+  const{subtotal,service}=getAmounts();
+  const p=document.getElementById('discPreview');
+  if(discPct>0){const d=(subtotal+service)*discPct/100;p.textContent=`-${fmt(d)}`;}
+  else p.textContent='';
+}
+function toggleGift(id){
+  if(giftItems.has(id)){giftItems.delete(id);}else{giftItems.add(id);returnItems.delete(id);}
+  buildAdjPanel();updateCartUI();
+}
+function toggleReturn(id){
+  if(returnItems.has(id)){returnItems.delete(id);}else{returnItems.add(id);giftItems.delete(id);}
+  buildAdjPanel();updateCartUI();
+}
+function toggleVoid(){isVoid=!isVoid;document.getElementById('voidBtn').classList.toggle('active',isVoid);updateCartUI();}
+
+function refreshPayPage(){
+  const{subtotal,service,disc,gift,tip,total}=getAmounts();
+  const entries=Object.entries(cart).filter(([,q])=>q>0);
+  let rows=entries.map(([id,qty])=>{
+    const it=findItem(Number(id));
+    const note=giftItems.has(Number(id))?` <em style="color:#4caf50;font-size:0.72rem">[${t('receipt.gift2')}]</em>`:returnItems.has(Number(id))?'<em style="color:#e53935;font-size:0.72rem">[X]</em>':'';
+    return `<div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:3px;color:#6a3a10"><span>${itemName(it)}${note} ×${qty}</span><span>${fmt(it.price*qty)}</span></div>`;
+  }).join('');
+  rows+=`<div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:3px;color:#8a5a30"><span>${t('receipt.svc')}</span><span>${fmt(service)}</span></div>`;
+  if(disc>0) rows+=`<div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:3px;color:#e53935"><span>${t('receipt.disc')} (-${discPct}%)</span><span>-${fmt(disc)}</span></div>`;
+  if(gift>0) rows+=`<div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:3px;color:#4caf50"><span>${t('receipt.gift')}</span><span>-${fmt(gift)}</span></div>`;
+  if(tip>0) rows+=`<div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:3px;color:#8a5a30"><span>${t('receipt.tip')} (${tipPct}%)</span><span>${fmt(tip)}</span></div>`;
+  document.getElementById('paySummary').innerHTML=rows;
+  document.getElementById('payTotal').textContent=fmt(total);
+  const opts=[total,Math.ceil(total/10)*10,Math.ceil(total/50)*50,Math.ceil(total/100)*100];
+  document.getElementById('quickAmts').innerHTML=[...new Set(opts)].slice(0,4).map(a=>`<div class="qa" onclick="setCash(${a})">${fmt(a)}</div>`).join('');
+  applyI18n();
+  if(payMethod==='cash') calcChange();
+  document.getElementById('payNowBtn').disabled=isVoid?false:!checkPayReady2();
+}
+function selTip(el,pct){document.querySelectorAll('.tip-opt').forEach(o=>o.classList.remove('selected'));el.classList.add('selected');tipPct=pct;updateCartUI();refreshPayPage();}
+function selPay(el,method){
+  document.querySelectorAll('.pm').forEach(m=>m.classList.remove('selected'));el.classList.add('selected');payMethod=method;
+  document.getElementById('cashPanel').classList.toggle('show',method==='cash');
+  document.getElementById('ewPanel').classList.toggle('show',method==='ewallet');
+  if(method!=='cash'){document.getElementById('changeBox').classList.remove('show');document.getElementById('insufMsg').classList.remove('show');}
+  checkPayBtn();
+}
+function selEw(el,c){document.querySelectorAll('.ew-opt').forEach(o=>o.classList.remove('selected'));el.classList.add('selected');ewChoice=c;checkPayBtn();}
+function setCash(a){document.getElementById('cashInput').value=a.toFixed(2);calcChange();}
+function calcChange(){
+  const{total}=getAmounts();const paid=parseFloat(document.getElementById('cashInput').value)||0;
+  const cb=document.getElementById('changeBox'),im=document.getElementById('insufMsg');
+  if(paid>0&&paid<total){cb.classList.remove('show');im.classList.add('show');}
+  else if(paid>=total){cb.classList.add('show');im.classList.remove('show');document.getElementById('changeAmt').textContent=fmt(paid-total);}
+  else{cb.classList.remove('show');im.classList.remove('show');}
+  checkPayBtn();
+}
+function checkPayReady2(){
+  const{total}=getAmounts();if(isVoid) return true;if(!payMethod) return false;
+  if(payMethod==='card') return true;if(payMethod==='ewallet') return !!ewChoice;
+  if(payMethod==='cash'){const paid=parseFloat(document.getElementById('cashInput').value)||0;return paid>=total&&total>=0;}
+  return false;
+}
+function checkPayBtn(){document.getElementById('payNowBtn').disabled=!checkPayReady2();}
+
+function toggleCart(){
+  const d=document.getElementById('drawer'),o=document.getElementById('overlay');
+  const show=!d.classList.contains('show');
+  d.classList.toggle('show',show);o.classList.toggle('show',show);
+  if(!show) showPage2('cart');
+}
+
+function confirmPay(){
+  const{subtotal,service,disc,gift,tip,total}=getAmounts();
+  const paid=payMethod==='cash'?parseFloat(document.getElementById('cashInput').value):total;
+  const change=payMethod==='cash'?paid-total:0;
+  const now=new Date();
+  const dateStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const timeStr=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const num=`OC-${++orderNum}`;
+  const tableNum=document.getElementById('tableNum').value||'--';
+  const guests=document.getElementById('guestNum').value||1;
+  const mMap={cash:{label:t('pay.cash2'),color:'#4caf50'},card:{label:t('pay.card2'),color:'#2196f3'},ewallet:{alipay:{label:'Alipay 支付宝',color:'#1677ff'},wechat:{label:'WeChat 微信',color:'#07c160'},apple:{label:'Apple Pay',color:'#333'}}};
+  const mInfo=isVoid?{label:t('pay.void2'),color:'#e91e63'}:(payMethod==='ewallet'?mMap.ewallet[ewChoice]:mMap[payMethod]||{label:t('pay.void2'),color:'#e91e63'});
+  const entries=Object.entries(cart).filter(([,q])=>q>0);
+  const noteStr=document.getElementById('orderNote').value;
+
+  // save pending order
+  const pendingOrder={id:num,tableNum,guests,time:timeStr,dateStr,
+    items:entries.map(([id,qty])=>{const it=findItem(Number(id));return{id:Number(id),name:it.name,nameEn:it.nameEn,qty,price:it.price,isGift:giftItems.has(Number(id)),isReturn:returnItems.has(Number(id))};}).filter(i=>!i.isReturn),
+    served:{},status:'pending',total,note:noteStr};
+  pendingOrders.push(pendingOrder);
+
+  // save to report
+  orders.push({id:num,tableNum,guests,time:timeStr,dateStr,
+    items:entries.map(([id,qty])=>{const it=findItem(Number(id));return{name:it.name,nameEn:it.nameEn,qty,price:it.price,isGift:giftItems.has(Number(id)),isReturn:returnItems.has(Number(id))};}),
+    subtotal,service,disc,gift,tip,total,
+    payMethod:isVoid?'void':(payMethod==='ewallet'?ewChoice:payMethod),
+    isVoid,discPct,tipPct,note:noteStr});
+
+  // receipt
+  const itemRows=entries.map(([id,qty])=>{
+    const it=findItem(Number(id));
+    const isGift=giftItems.has(Number(id)),isReturn=returnItems.has(Number(id));
+    if(isReturn) return '';
+    return `<div class="r-item">
+      <div class="r-item-l">
+        <div class="r-item-name">${itemName(it)}${isGift?` <span style="color:#4caf50;font-size:0.7rem">[${t('receipt.gift2')}]</span>`:''}</div>
+        <div class="r-item-sub">${lang==='zh'?it.nameEn:it.name}</div>
+        <div class="r-item-unit">${fmt(it.price)} / ${lang==='zh'?'份':'pc'}</div>
+      </div>
+      <div class="r-item-qty">×${qty}</div>
+      <div class="r-item-price">${isGift?`<span style="color:#4caf50">${t('receipt.gift2')}</span>`:fmt(it.price*qty)}</div>
+    </div>`;
+  }).join('');
+  const bars=Array.from({length:34},(_,i)=>`<rect x="${i*4.5+4}" y="0" width="${i%3===0?3:2}" height="30" fill="#444"/>`).join('');
+
+  document.getElementById('receipt').innerHTML=`
+    <div class="r-header">
+      <div class="r-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <h3>${isVoid?t('receipt.void'):t('receipt.success')}</h3><p>${t('receipt.sub')}</p>
+    </div>
+    <div class="r-wave"><svg viewBox="0 0 380 14" preserveAspectRatio="none" style="width:100%;height:14px"><path d="M0,0 Q9.5,14 19,0 Q28.5,14 38,0 Q47.5,14 57,0 Q66.5,14 76,0 Q85.5,14 95,0 Q104.5,14 114,0 Q123.5,14 133,0 Q142.5,14 152,0 Q161.5,14 171,0 Q180.5,14 190,0 Q199.5,14 209,0 Q218.5,14 228,0 Q237.5,14 247,0 Q256.5,14 266,0 Q275.5,14 285,0 Q294.5,14 304,0 Q313.5,14 323,0 Q332.5,14 342,0 Q351.5,14 361,0 Q370.5,14 380,0 L380,14 L0,14 Z" fill="#f8f8f8"/></svg></div>
+    <div class="r-body">
+      <div class="r-store"><div class="r-store-name">${t('brand.name')}</div><div class="r-store-sub">${t('receipt.storeSub')}</div></div>
+      <hr class="r-div">
+      <div class="r-meta">
+        <div class="r-meta-col"><div class="r-lbl">${t('receipt.order')}</div><div class="r-val">${num}</div></div>
+        <div class="r-meta-col" style="text-align:right"><div class="r-lbl">${t('receipt.datetime')}</div><div class="r-val">${dateStr} ${timeStr}</div></div>
+      </div>
+      <div class="r-table-info">
+        <div>${t('receipt.table')}：<span>${tableNum}</span></div>
+        <div>${t('receipt.guests')}：<span>${guests} ${t('receipt.person')}</span></div>
+        ${noteStr?`<div>${t('adj.note')}：<span>${noteStr}</span></div>`:''}
+      </div>
+      <div class="r-items-hdr"><span>${t('receipt.item')}</span><span>${t('receipt.qty2')}</span><span>${t('receipt.amt')}</span></div>
+      ${itemRows}
+      <div class="r-totals">
+        <div class="rr"><span>${t('receipt.subtotal')}</span><span>${fmt(subtotal)}</span></div>
+        <div class="rr"><span>${t('receipt.svc')}</span><span>${fmt(service)}</span></div>
+        ${disc>0?`<div class="rr disc"><span>${t('receipt.disc')} (-${discPct}%)</span><span>-${fmt(disc)}</span></div>`:''}
+        ${gift>0?`<div class="rr gift"><span>${t('receipt.gift')}</span><span>-${fmt(gift)}</span></div>`:''}
+        ${tip>0?`<div class="rr"><span>${t('receipt.tip')} (${tipPct}%)</span><span>${fmt(tip)}</span></div>`:''}
+        ${isVoid?`<div class="rr" style="color:#e91e63"><span>${t('receipt.void2')}</span><span>¥0.00</span></div>`:''}
+        <div class="rr total"><span>${t('receipt.total')}</span><span>${fmt(total)}</span></div>
+      </div>
+      <div class="r-paid-box">
+        <div class="r-lbl" style="margin-bottom:6px;">${t('receipt.payDetail')}</div>
+        <div class="pay-badge" style="background:${mInfo.color}22;color:${mInfo.color};"><span style="width:7px;height:7px;border-radius:50%;background:${mInfo.color};display:inline-block;"></span>${mInfo.label}</div>
+        ${payMethod==='cash'?`<div style="display:flex;justify-content:space-between;font-size:0.82rem;color:#8a5a30;margin-bottom:5px;"><span>${t('receipt.paid')}</span><span style="font-weight:700">${fmt(paid)}</span></div><div class="r-change"><span>${t('receipt.change')}</span><span>${fmt(change)}</span></div>`:''}
+      </div>
+      <div class="r-barcode"><svg viewBox="0 0 160 34" xmlns="http://www.w3.org/2000/svg">${bars}</svg><div style="font-size:0.66rem;color:#bbb;margin-top:2px;letter-spacing:1px;">${num}</div></div>
+      <div class="r-thanks">${t('receipt.thanks')}</div>
+      <div class="r-actions">
+        <button class="r-print-btn" onclick="window.print()">${t('receipt.print')}</button>
+        <button class="r-close-btn" onclick="closeReceipt()">${t('receipt.close')}</button>
+      </div>
+    </div>`;
+
+  toggleCart();
+  document.getElementById('modal').classList.add('show');
+  cart={};discPct=0;giftItems.clear();returnItems.clear();isVoid=false;payMethod=null;tipPct=0;ewChoice='alipay';
+  document.querySelectorAll('.tip-opt').forEach((o,i)=>o.classList.toggle('selected',i===0));
+  document.querySelectorAll('.pm').forEach(m=>m.classList.remove('selected'));
+  document.getElementById('cashInput').value='';
+  document.getElementById('changeBox').classList.remove('show');
+  document.getElementById('cashPanel').classList.remove('show');
+  document.getElementById('ewPanel').classList.remove('show');
+  document.getElementById('orderNote').value='';
+  updateCartUI();renderMenu();
+}
+function closeReceipt(){document.getElementById('modal').classList.remove('show');}
+
+// ── STAFF ──
+function renderStaff(){
+  const el=document.getElementById('staffOrders');
+  const active=pendingOrders.filter(o=>o.status!=='cancelled');
+  if(!active.length){
+    el.innerHTML=`<div style="grid-column:1/-1;text-align:center;color:#c0a080;padding:60px 20px;"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:10px;opacity:0.35;display:block;margin:0 auto 10px;"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><p>${t('staff.empty')}</p></div>`;
+    return;
+  }
+  const statusLabel={pending:t('staff.pending'),serving:t('staff.serving'),done:t('staff.done')};
+  el.innerHTML=active.map(o=>{
+    const allServed=o.items.length>0&&o.items.every(i=>o.served[i.id]);
+    const status=allServed?'done':o.status;
+    const itemRows=o.items.map(i=>`
+      <div class="oc-item-row">
+        <span class="oc-item-name">${lang==='en'?i.nameEn:i.name}${i.isGift?` <em style="color:#4caf50;font-size:0.72rem">[${t('receipt.gift2')}]</em>`:''}</span>
+        <span class="oc-item-qty">×${i.qty}</span>
+        <span>${o.served[i.id]?`<span class="served-label">${t('staff.served')}</span>`:`<button class="serve-item-btn" onclick="serveItem('${o.id}',${i.id})">${t('staff.serveItem')}</button>`}</span>
+      </div>`).join('');
+    return `<div class="order-card">
+      <div class="oc-header ${status}">
+        <div>
+          <div class="oc-table">${t('staff.table')} ${o.tableNum} · ${o.guests} ${t('staff.guests')}</div>
+          <div class="oc-time">${o.dateStr} ${o.time}</div>
+        </div>
+        <span class="status-badge ${status}">${statusLabel[status]}</span>
+      </div>
+      <div class="oc-body">
+        <div class="oc-meta">
+          <span>${t('staff.order')}：${o.id}</span>
+          ${o.note?`<span>${t('staff.note')}：${o.note}</span>`:''}
+        </div>
+        <div class="oc-items">${itemRows}</div>
+        <div class="oc-total">${t('staff.total')}：${fmt(o.total)}</div>
+        <div class="oc-actions">
+          ${!allServed?`<button class="serve-btn" onclick="serveAll('${o.id}')">${t('staff.serveAll')}</button>`:`<button class="serve-btn" disabled>${t('staff.done')}</button>`}
+          <button class="cancel-btn" onclick="cancelOrder('${o.id}')">${t('staff.cancel')}</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function serveItem(orderId,itemId){const o=pendingOrders.find(x=>x.id===orderId);if(!o)return;o.served[itemId]=true;o.status='serving';renderStaff();}
+function serveAll(orderId){const o=pendingOrders.find(x=>x.id===orderId);if(!o)return;o.items.forEach(i=>{o.served[i.id]=true;});o.status='serving';renderStaff();}
+function cancelOrder(orderId){const o=pendingOrders.find(x=>x.id===orderId);if(o)o.status='cancelled';renderStaff();}
+
+// ── REPORT ──
+function renderReport(){
+  const el=document.getElementById('reportContent');
+  if(!orders.length){el.innerHTML=`<div style="text-align:center;color:#c0a080;padding:60px 20px;">${t('owner.noData')}</div>`;return;}
+  const totalRev=orders.reduce((s,o)=>s+o.total,0);
+  const totalOrders=orders.length;
+  const avgOrder=totalOrders?totalRev/totalOrders:0;
+  const totalGuests=orders.reduce((s,o)=>s+Number(o.guests),0);
+  const discCount=orders.filter(o=>o.discPct>0).length;
+  const voidCount=orders.filter(o=>o.isVoid).length;
+  const giftCount=orders.filter(o=>o.gift>0).length;
+  const payMix={cash:0,card:0,alipay:0,wechat:0,apple:0,void:0};
+  orders.forEach(o=>{const k=o.payMethod||'void';if(payMix[k]!==undefined)payMix[k]++;else payMix[k]=1;});
+  const itemCount={};
+  orders.forEach(o=>o.items.filter(i=>!i.isReturn).forEach(i=>{const n=lang==='en'?i.nameEn:i.name;itemCount[n]=(itemCount[n]||0)+i.qty;}));
+  const topItems=Object.entries(itemCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxQty=topItems[0]?.[1]||1;
+  const payLabels={cash:t('pay.cash2'),card:t('pay.card2'),alipay:'Alipay',wechat:'WeChat',apple:'Apple Pay',void:t('pay.void2')};
+  el.innerHTML=`
+    <div class="summary-bar">
+      <div class="sb-item"><div class="sb-label">${t('owner.revenue')}</div><div class="sb-val">${fmt(totalRev)}</div></div>
+      <div class="sb-item"><div class="sb-label">${t('owner.orders')}</div><div class="sb-val">${totalOrders}</div></div>
+      <div class="sb-item"><div class="sb-label">${t('owner.avg')}</div><div class="sb-val">${fmt(avgOrder)}</div></div>
+      <div class="sb-item"><div class="sb-label">${t('owner.guests')}</div><div class="sb-val">${totalGuests}</div></div>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi orange"><div class="kpi-label">${t('owner.net')}</div><div class="kpi-val">${fmt(totalRev)}</div><div class="kpi-sub">${t('owner.netSub')}</div></div>
+      <div class="kpi green"><div class="kpi-label">${t('owner.discOrders')}</div><div class="kpi-val">${discCount}</div><div class="kpi-sub">${t('owner.discSub')}</div></div>
+      <div class="kpi blue"><div class="kpi-label">${t('owner.giftOrders')}</div><div class="kpi-val">${giftCount}</div><div class="kpi-sub">${t('owner.giftSub')}</div></div>
+      <div class="kpi purple"><div class="kpi-label">${t('owner.voidOrders')}</div><div class="kpi-val">${voidCount}</div><div class="kpi-sub">${t('owner.voidSub')}</div></div>
+    </div>
+    <div class="report-grid">
+      <div class="report-box">
+        <div class="section-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e8650a" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>${t('owner.topItems')}</div>
+        ${topItems.map(([name,qty],i)=>`<div class="top-item-row"><div class="rank-num ${i===0?'gold':''}">${i+1}</div><div class="ti-name">${name}</div><div class="ti-bar-wrap"><div class="ti-bar" style="width:${Math.round(qty/maxQty*100)}%"></div></div><div class="ti-val">${qty} ${t('owner.qty')}</div></div>`).join('')}
+      </div>
+      <div class="report-box">
+        <div class="section-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e8650a" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>${t('owner.payMix')}</div>
+        ${['cash','card','alipay','wechat','apple','void'].filter(k=>payMix[k]>0).map(k=>`<div class="top-item-row"><div class="ti-name"><span class="oh-method ${k==='alipay'||k==='wechat'||k==='apple'?'ewallet':k}">${payLabels[k]}</span></div><div class="ti-bar-wrap"><div class="ti-bar" style="width:${Math.round(payMix[k]/totalOrders*100)}%"></div></div><div class="ti-val">${payMix[k]} ${t('owner.orders2')}</div></div>`).join('')}
+        <div style="margin-top:10px;font-size:0.78rem;color:#8a5a30;font-weight:600;">${t('owner.payCombo')}</div>
+        <div class="pay-mix">
+          ${payMix.cash?`<div class="pm-chip cash">${t('pay.cash2')} ${payMix.cash}</div>`:''}
+          ${payMix.card?`<div class="pm-chip card">${t('pay.card2')} ${payMix.card}</div>`:''}
+          ${payMix.alipay+payMix.wechat+payMix.apple?`<div class="pm-chip ewallet">E-Wallet ${payMix.alipay+payMix.wechat+payMix.apple}</div>`:''}
+        </div>
+      </div>
+    </div>
+    <div class="report-box">
+      <div class="section-title" style="justify-content:space-between;">
+        <span style="display:flex;align-items:center;gap:7px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e8650a" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>${t('owner.history')}</span>
+        <span style="font-size:0.76rem;color:#aaa;font-weight:400;">${orders.length} ${t('owner.total2')}</span>
+      </div>
+      ${[...orders].reverse().map(o=>{
+        const tags=[];
+        if(o.discPct>0) tags.push(`<span class="adj-tag disc">${t('disc.tag')} -${o.discPct}%</span>`);
+        if(o.gift>0) tags.push(`<span class="adj-tag gift">${t('gift.tag')}</span>`);
+        if(o.isVoid) tags.push(`<span class="adj-tag void">${t('void.tag')}</span>`);
+        const mKey=o.payMethod||'void';
+        const mLabel=payLabels[mKey]||mKey;
+        const mCls={cash:'cash',card:'card',alipay:'ewallet',wechat:'ewallet',apple:'ewallet',void:'void'}[mKey]||'void';
+        return `<div class="order-hist-row">
+          <div style="flex:1;">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:2px;">
+              <span class="oh-num">${o.id}</span>
+              <span class="oh-table">${t('staff.table')}${o.tableNum} · ${o.guests}${lang==='en'?' pax':'人'}</span>
+              <span class="oh-method ${mCls}">${mLabel}</span>
+            </div>
+            <div style="display:flex;gap:4px;align-items:center;">
+              <span style="font-size:0.72rem;color:#aaa;">${o.dateStr} ${o.time}</span>
+              <div class="adj-tags">${tags.join('')}</div>
+            </div>
+          </div>
+          <span class="oh-total">${fmt(o.total)}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+function clearData(){if(confirm(t('owner.clearConfirm'))){orders=[];pendingOrders=[];orderNum=1000;renderReport();}}
+
+init();
+</script>
+</body>
+</html>
